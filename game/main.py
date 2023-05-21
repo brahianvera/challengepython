@@ -1,6 +1,6 @@
 import pygame
 import os
-import button
+from button import Button
 
 pygame.font.init()
 
@@ -13,10 +13,14 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 
+
 BORDER = pygame.Rect(WIDTH//2 - 5, 0, 10, HEIGHT)
 HEALTH_FONT = pygame.font.SysFont('comicsans', 40)
 PAUSE_FONT = pygame.font.SysFont('comicsans',20)
+INSTRUCTIONS_FONT = pygame.font.SysFont('comicsans',10)
 WINNER_FONT = pygame.font.SysFont('comicsans', 100)
+MENU_TITLE = pygame.font.SysFont("comicsans", 30)
+MENU_BUTTON = pygame.font.SysFont("comicsans", 20)
 
 FPS = 60
 VEL = 5
@@ -40,6 +44,12 @@ RED_SPACESHIP = pygame.transform.rotate(pygame.transform.scale(
 SPACE = pygame.transform.scale(pygame.image.load(
     os.path.join('Assets', 'space.png')), (WIDTH, HEIGHT))
 
+BACKGROUND_MENU = pygame.transform.scale(
+    pygame.image.load("assets/buttons/Background.png"), (400, 400))
+BACKGROUND_OPTION = pygame.transform.scale(
+    pygame.image.load("assets/buttons/background_option.png"), (200, 50))
+
+
 
 def draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_health):
     WIN.blit(SPACE, (0, 0))
@@ -49,11 +59,29 @@ def draw_window(red, yellow, red_bullets, yellow_bullets, red_health, yellow_hea
         "Health: " + str(red_health), 1, WHITE)
     yellow_health_text = HEALTH_FONT.render(
         "Health: " + str(yellow_health), 1, WHITE)
-    text_menu = PAUSE_FONT.render("PRESS SPACE TO MENU",1,WHITE)
+    text_menu = PAUSE_FONT.render("PRESS ESC TO MENU",1,WHITE)
+    INSTRUCTIONS = INSTRUCTIONS_FONT.render("INSTRUCTIONS",1,RED)
+    UP_INSTRUCCION = INSTRUCTIONS_FONT.render("UP = W",1,WHITE)
+    DOWN_INSTRUCCION = INSTRUCTIONS_FONT.render("DOWN = S",1,WHITE)
+    LEFT_INSTRUCCION = INSTRUCTIONS_FONT.render("LEFT = D.",1,WHITE)
+    RIGTH_INSTRUCCION = INSTRUCTIONS_FONT.render("RIGTH = A",1,WHITE)
+    SHOOT_INSTRUCCION = INSTRUCTIONS_FONT.render("SHOOT = SPACE",1,WHITE)
+
     
     WIN.blit(red_health_text, (WIDTH - red_health_text.get_width() - 10, 10))
     WIN.blit(yellow_health_text, (10, 10))
     WIN.blit(text_menu, (((WIDTH - red_health_text.get_width()) /2 ),(HEIGHT - text_menu.get_height())))
+
+    '''WIN.blit(UP_INSTRUCCION, (10, 10))
+    WIN.blit(DOWN_INSTRUCCION, (10, 10))
+    WIN.blit(LEFT_INSTRUCCION, (10, 10))
+    WIN.blit(RIGTH_INSTRUCCION, (10, 10))'''
+    WIN.blit(INSTRUCTIONS, (10, WIN.get_height() - (INSTRUCTIONS.get_height()*6)))
+    WIN.blit(UP_INSTRUCCION, (10, WIN.get_height() - (UP_INSTRUCCION.get_height()*5)))
+    WIN.blit(DOWN_INSTRUCCION, (10, WIN.get_height() - (DOWN_INSTRUCCION.get_height()*4)))
+    WIN.blit(LEFT_INSTRUCCION, (10, WIN.get_height() - (LEFT_INSTRUCCION.get_height()*3)))
+    WIN.blit(RIGTH_INSTRUCCION, (10, WIN.get_height() - (RIGTH_INSTRUCCION.get_height()*2)))
+    WIN.blit(SHOOT_INSTRUCCION, (10, WIN.get_height() - SHOOT_INSTRUCCION.get_height()))
 
     WIN.blit(YELLOW_SPACESHIP, (yellow.x, yellow.y))
     WIN.blit(RED_SPACESHIP, (red.x, red.y))
@@ -126,15 +154,24 @@ def main():
 
     clock = pygame.time.Clock()
     run = True
+    menu_active = False
+    action = ""
     while run:
         clock.tick(FPS)
+        if menu_active == True:
+            action = menu()
+            if(action == "CONTINUE"):
+                menu_active = False
+            if(action == "RESET"):
+                break
+            continue
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LCTRL and len(yellow_bullets) < MAX_BULLETS:
+                if event.key == pygame.K_SPACE and len(yellow_bullets) < MAX_BULLETS:
                     bullet = pygame.Rect(
                         yellow.x + yellow.width, yellow.y + yellow.height//2 - 2, 10, 5)
                     yellow_bullets.append(bullet)
@@ -144,7 +181,10 @@ def main():
                     bullet = pygame.Rect(
                         red.x, red.y + red.height//2 - 2, 10, 5)
                     red_bullets.append(bullet)
-                    #BULLET_FIRE_SOUND.play()
+
+                if event.key == pygame.K_ESCAPE:
+                    menu_active = True
+                    
 
             if event.type == RED_HIT:
                 red_health -= 1
@@ -175,7 +215,39 @@ def main():
                     red_health, yellow_health)
 
     main()
+    
+def menu():
+    MENU_MOUSE_POS = pygame.mouse.get_pos()
+    MENU_BOX_X = WIDTH/2 - (BACKGROUND_MENU.get_width()/2)
+    MENU_BOX_Y = HEIGHT/2 - (BACKGROUND_MENU.get_height()/2)
+    WIN.blit(BACKGROUND_MENU, (MENU_BOX_X, MENU_BOX_Y))
 
+    MENU_TEXT = MENU_TITLE.render("MAIN MENU", True, "#b68f40")
+    MENU_RECT = MENU_TEXT.get_rect(center=(MENU_BOX_X + (BACKGROUND_MENU.get_width()/2) , MENU_BOX_Y + 40))
+    WIN.blit(MENU_TEXT, MENU_RECT)
+    PLAY_BUTTON = Button(BACKGROUND_OPTION, pos=(MENU_BOX_X +(BACKGROUND_MENU.get_width()/2) , MENU_BOX_Y + 150), 
+                        text_input="Continue", font = MENU_BUTTON, base_color="#d7fcd4", hovering_color="White")
+    RESET_BUTTON = Button(BACKGROUND_OPTION, pos=(MENU_BOX_X +(BACKGROUND_MENU.get_width()/2), MENU_BOX_Y +210), 
+                        text_input="Reset", font=MENU_BUTTON, base_color="#d7fcd4", hovering_color="White")
+    QUIT_BUTTON = Button(BACKGROUND_OPTION, pos=(MENU_BOX_X +(BACKGROUND_MENU.get_width()/2), MENU_BOX_Y +270), 
+                        text_input="Quit", font=MENU_BUTTON, base_color="#d7fcd4", hovering_color="White")
+    
+    for button in [PLAY_BUTTON, RESET_BUTTON, QUIT_BUTTON]:
+        button.update(WIN)
+    
+    for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    return "CONTINUE"
+                if RESET_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    return "RESET"
+                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    pygame.quit()
+
+    pygame.display.update()
 
 if __name__ == "__main__":
     main()
